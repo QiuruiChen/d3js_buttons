@@ -1,0 +1,114 @@
+<!-- Code from d3-graph-gallery.com -->
+<!DOCTYPE html>
+<meta charset="utf-8">
+<!-- Load d3.js -->
+<script src="https://d3js.org/d3.v4.js"></script>
+<!-- Add 2 buttons -->
+<!-- <button onclick="update('2017')">2018</button>
+<button onclick="update('2019')">2019</button>
+<button onclick="update('2020')">2020</button> -->
+
+<select id="Groups" onchange="update()">
+    <option value="longTermCareP" selected>Interested Group</option>
+    <option value="NormalP">Basis Group</option>
+</select>
+
+<select id="Year" onchange="update()">
+    <option value="2018" selected>2018</option>
+    <option value="2019">2019</option>
+    <option value="2020">2020</option>
+</select>
+
+
+<!-- Create a div where the graph will take place -->
+<div id="my_dataviz"></div>
+<script>
+
+const page_width  = window.innerWidth || document.documentElement.clientWidth ||
+document.body.clientWidth;
+const page_height = window.innerHeight|| document.documentElement.clientHeight||
+document.body.clientHeight;
+
+// set the dimensions and margins of the graph
+var margin = {top: 30, right: 30, bottom: 300, left: 60},
+    width = page_width - margin.left - margin.right,
+    height = page_height*0.8 - margin.top - margin.bottom;
+
+// append the svg object to the body of the page
+var svg = d3.select("#my_dataviz")
+  .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")");
+
+// Initialize the X axis
+var x = d3.scaleBand()
+  .range([ 0, width ])
+  .padding(0.2);
+var xAxis = svg.append("g")
+  .attr("transform", "translate(0," + height + ")")
+
+
+// Initialize the Y axis
+var y = d3.scaleLinear()
+  .range([ height, 0]);
+var yAxis = svg.append("g")
+  .attr("class", "myYaxis")
+
+// A function that create / update the plot for a given variable:
+function update() {
+  var selectedYear = document.getElementById("Year").value;
+  var selectedGroups = document.getElementById("Groups").value;
+  // Parse the Data
+  d3.csv("data/problem_mins.csv",
+  function(data) {
+    // X axis
+    data = data.filter(function(d){
+      if(d["Groups"] == selectedGroups) return d;
+    })
+    x.domain(data.map(function(d) { return d.Probleem; }))
+    xAxis.transition().duration(1000).call(d3.axisBottom(x))
+    .selectAll("text")
+       .style("text-anchor", "end")
+       .attr("dx", "-.8em")
+       .attr("dy", ".15em")
+       .attr("transform", "rotate(-65)");
+
+    // Add Y axis
+    y.domain([0, d3.max(data, function(d) { return +d[selectedYear] }) ]);
+
+    yAxis.transition().duration(1000).call(d3.axisLeft(y));
+    yAxis.append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("dx", "-15em")
+        .attr("dy", "-4em")
+        .style("text-anchor", "middle")
+        .style("fill", "black")
+        .text("Median Regietred Minutes Per Month");
+
+    // variable u: map data to existing bars
+    var u = svg.selectAll("rect")
+      .data(data)
+
+    // update bars
+    u
+      .enter()
+      .append("rect")
+      .merge(u)
+      .transition()
+      .duration(1000)
+        .attr("x", function(d) { return x(d.Probleem); })
+        .attr("y", function(d) { return y(d[selectedYear]); })
+        .attr("width", x.bandwidth())
+        .attr("height", function(d) { return height - y(d[selectedYear]); })
+        .attr("fill", "#69b3a2")
+  })
+
+}
+
+// Initialize plot
+update()
+
+</script>

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+.toolTip {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    position: absolute;
+    display: none;
+    width: auto;
+    height: auto;
+    background: none repeat scroll 0 0 white;
+    border: 0 none;
+    border-radius: 8px 8px 8px 8px;
+    box-shadow: -3px 3px 15px #888888;
+    color: black;
+    font: 12px sans-serif;
+    padding: 5px;
+    text-align: center;
+}
+.legend {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 60%;
+}
+</style>
+
+<!-- Load d3.js -->
+<script src="https://d3js.org/d3.v4.js"></script>
+
+<select id="Groups" onchange="update('True')">
+    <option value="longTermCareP" selected>Interested Group</option>
+    <option value="NormalP">Basis Group</option>
+</select>
+
+<select id="Domain" onchange="update('True')">
+    <option value="1">omgevings-domein</option>
+    <option value="2">psychosociaal domein</option>
+    <option value="3">fysiologisch domein</option>
+    <option value="4" selected>gezondheidsgerelateerd gedrags-domein</option>
+</select>
+
+<!-- Create a div where the graph will take place -->
+<div id="my_dataviz"></div>
+
+<script>
+
+const page_width  = window.innerWidth || document.documentElement.clientWidth ||
+document.body.clientWidth;
+const page_height = window.innerHeight|| document.documentElement.clientHeight||
+document.body.clientHeight;
+
+// set the dimensions and margins of the graph
+var margin = {top: 10, right: 30, bottom: 200, left: 50},
+    width = page_width - margin.left - margin.right,
+    height = page_height*0.8 - margin.top - margin.bottom;
+
+// append the svg object to the body of the page
+var svg = d3.select("#my_dataviz")
+  .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom);
+var appendContent = svg.append("g")
+    .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")");
+
+// Init X
+var x = d3.scaleBand()
+    .range([0, width])
+    .padding([0.2])
+
+// Init Y
+var y = d3.scaleLinear()
+  .range([ height, 0 ]);
+
+d3.selection.prototype.last = function() {
+  var last = this.size() - 1;
+  return d3.select(this[0][last]);
+};
+
+function update(changed) {
+  var selectedDomain = document.getElementById("Domain").value;
+  var selectedGroups = document.getElementById("Groups").value;
+
+  // Parse the Data
+  d3.csv("data/dimines_mins.csv", function(data) {
+
+    data = data.filter(function(d){
+      if((d["Groups"] == selectedGroups) && (parseInt(d["Domein_ID"]) == parseInt(selectedDomain))) return d;
+    })
+    // List of subgroups = header of the csv files = soil condition here
+    // var subgroups = data.columns.slice(1)
+    var subgroups = ['2018','2019','2020']
+
+    // List of groups = species here = value of the first column called group -> I show them on the X axis
+    var groups = d3.map(data, function(d){return(d.Probleem)}).keys()
+
+    // clear the last Group
+    appendContent.selectAll("g").remove();
+    var xAxis = appendContent.append("g")
+      .attr("transform", "translate(0," + height + ")")
+    var yAxis = appendContent.append("g")
+
+    // Add X axis
+    x.domain(groups)
+    xAxis.transition().duration(1000)
+      .call(d3.axisBottom(x).tickSize(0))
+      .selectAll("text")
+         .style("text-anchor", "end")
+         .attr("dx", "-.8em")
+         .attr("dy", ".15em")
+         .attr("transform", "rotate(-65)");
+
+    // Add Y axis
+    y.domain([0, d3.max(data, function(d) {return Math.max(d['2018'], d['2019'], d['2020']) })]);
+    yAxis.transition().duration(1000)
+      .call(d3.axisLeft(y));
+    yAxis.append("text")
+          .attr("transform", "rotate(-90)")
+          .attr("dx", "-15em")
+          .attr("dy", "-4em")
+          .style("text-anchor", "middle")
+          .style("fill", "black")
+          .text("Median Regietred Minutes Per Month");
+
+    // Another scale for subgroup position?
+    var xSubgroup = d3.scaleBand()
+      .domain(subgroups)
+      .range([0, x.bandwidth()])
+      .padding([0.05])
+
+    // color palette = one color per subgroup
+    var color = d3.scaleOrdinal()
+      .domain(subgroups)
+      .range(['#e41a1c','#377eb8','#4daf4a'])
+
+    appendContent.append("g").selectAll("g")
+      // Enter in data = loop group per group
+      .data(data)
+      .enter()
+      .append("g")
+        .attr("transform", function(d) { return "translate(" + x(d.Probleem) + ",0)"; })
+      .selectAll("rect")
+      .data(function(d) { return subgroups.map(function(key) { return {key: key, value: d[key]}; }); })
+      .enter().append("rect")
+        .attr("x", function(d) { return xSubgroup(d.key); })
+        .attr("y", function(d) { return y(d.value); })
+        .attr("width", xSubgroup.bandwidth())
+        .attr("height", function(d) { return height - y(d.value); })
+        .attr("fill", function(d) { return color(d.key); });
+
+
+    // add legend
+    options = ['2018','2019','2020']
+    var legend = svg.selectAll(".legend")
+        .data(options.slice())
+        .enter().append("g")
+        .attr("class", "legend")
+        .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+
+    legend.append("rect")
+        .attr("x", width + 18)
+        .attr("width", 18)
+        .attr("height", 18)
+        .style("fill", color);
+
+    legend.append("text")
+        .attr("x", width + 40)
+        .attr("y", 9)
+        .attr("dy", ".35em")
+        .style("text-anchor", "start")
+        .text(function(d) { return d; });
+
+
+  })
+}
+
+update('False')
+
+</script>

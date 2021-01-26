@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<!-- Load d3.js -->
+<script src="https://d3js.org/d3.v4.js"></script>
+
+<!-- Create a div where the graph will take place -->
+<div id="my_dataviz"></div>
+<p>Click the legend box to specify one line.</p>
+<script type="text/javascript">
+
+const page_width  = window.innerWidth || document.documentElement.clientWidth ||
+document.body.clientWidth;
+const page_height = window.innerHeight|| document.documentElement.clientHeight||
+document.body.clientHeight;
+
+// set the dimensions and margins of the graph
+var margin = {top: 0.1*page_height, right: 0.1*page_width, bottom: 0.1*page_height, left: 0.1*page_width},
+    width = page_width - margin.left - margin.right,
+    height = page_height - margin.top - margin.bottom;
+
+// append the svg object to the body of the page
+var svg = d3.select("#my_dataviz")
+  .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")");
+//Read the data
+d3.csv("data/wound_Verwijzer_mins.csv", function(data) {
+
+  // group the data: I want to draw one line per group
+  var sumstat = d3.nest() // nest function allows to group the calculation per level of a factor
+    .key(function(d) { return d.Verwijzer;})
+    .entries(data);
+
+  // Add X axis --> it is a date format
+  var x = d3.scaleLinear()
+    .domain([0,72])
+    .range([0,width-0.1*page_width]);
+
+  svg.append("g")
+    .attr("transform", "translate(0," + height + ")")
+    .call(d3.axisBottom(x).ticks(20)).append("text")
+      .attr("dx", 0.35*page_width)
+      .attr("dy", 0.05*page_height)
+      .style("text-anchor", "middle")
+      .style("fill", "black")
+      .text("Time indicator");
+
+  // Add Y axis
+  var y = d3.scaleLinear()
+    .domain([0, d3.max(data, function(d) { return +d.CI_hi; })])
+    .range([ height, 0 ]);
+  svg.append("g")
+    .call(d3.axisLeft(y)).append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("dx", -0.3*page_width)
+      .attr("dy", -0.08*page_height)
+      .style("text-anchor", "middle")
+      .style("fill", "black")
+      .text("Median Regietred Minutes");
+
+  // color palette
+  var res = sumstat.map(function(d){ return d.key }) // list of group names
+
+  var color = d3.scaleOrdinal()
+    .domain(res)
+    .range(['#e6194B', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#42d4f4', '#f032e6', '#bfef45', '#fabed4', '#469990', '#dcbeff', '#9A6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#a9a9a9', '#000000'])
+
+  // Draw the line
+  var lines = svg.append("g")
+  var u = lines.selectAll(".line")
+      .data(sumstat)
+      .enter()
+
+  function uinit(){
+    u.append("path")
+      .attr("fill", function(d){ return color(d.key) })
+      .attr("opacity",'0.4')
+            .attr("stroke", "none")
+            .attr("d", function(d){
+              return d3.area()
+              .x(function(d) { return x(d.rec_rank) })
+              .y0(function(d) { return y(+d.CI_hi) })
+              .y1(function(d) { return y(+d.CI_li) })
+              (d.values)
+            });
+    u.append("path")
+        .attr("fill", "none")
+        .attr("stroke", function(d){ return color(d.key) })
+        .attr("stroke-width", 2)
+        .attr("d", function(d){
+          return d3.line()
+            .x(function(d) { return x(d.rec_rank); })
+            .y(function(d) { return y(+d.Mean); })
+            (d.values)
+        });
+  }
+  uinit()
+
+  var rec_width = 0.01*page_width;
+  // add legend
+  var lineLegend = svg.selectAll(".lineLegend").data(res)
+      .enter().append("g")
+      .attr("class","lineLegend")
+      .attr("transform", function (d,i) {
+              return "translate(" + (width-0.1*page_width) + "," +(i*15+15)+")";
+          });
+
+  lineLegend.append("text").text(function (d) {return d;})
+      .attr("transform", "translate(15,9)") //align texts with boxes
+      .attr("font-size", ".8em");
+
+  var legendRect = lineLegend.append("rect")
+      .attr("fill", function (d, i) {return color(d); })
+      .attr("width", rec_width).attr("height", rec_width);
+
+  // show All legend
+  var showAll = svg.append("g").attr("class","lineLegend")
+  .attr("class","lineLegend")
+  .attr("transform",  "translate(" + (width-0.1*page_width) + ", 0)")
+
+  showAll.append("text")
+  .text("show all").attr("transform", "translate(15,9)")
+  .attr("font-size", ".8em")
+  showAll.append("rect")
+  .attr("fill","black")
+  .attr("width", rec_width).attr("height", rec_width)
+  .on("click", function(){
+      u.selectAll("path").remove();
+      uinit()
+  });
+
+  // add click function into selected legend box
+  legendRect.on("click", function(selectedVal) {
+      u.selectAll("path").remove();
+      u.append("path")
+        .attr("fill", function(d){
+          if(d.key == selectedVal) return color(d.key) })
+        .attr("opacity",'0.4')
+              .attr("stroke", "none")
+              .attr("d", function(d){
+                if(d.key == selectedVal){
+                  return d3.area()
+                  .x(function(d) { return x(d.rec_rank) })
+                  .y0(function(d) { return y(+d.CI_hi) })
+                  .y1(function(d) { return y(+d.CI_li) })
+                  (d.values)
+                }
+              });
+      u.append("path")
+          .attr("fill", "none")
+          .attr("stroke", function(d){
+            if(d.key == selectedVal) return color(d.key) })
+          .attr("stroke-width", 2)
+          .attr("d", function(d){
+            if(d.key == selectedVal){
+              return d3.line()
+                .x(function(d) { return x(d.rec_rank); })
+                .y(function(d) { return y(+d.Mean); })
+                (d.values)
+            }
+          });
+    });
+})
+
+</script>

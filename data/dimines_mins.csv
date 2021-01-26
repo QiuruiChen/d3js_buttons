@@ -1,0 +1,81 @@
+Probleem,Domein_ID,2018,2019,2020,Groups
+ademhaling,3,3985.0,5320.0,4647.5,longTermCareP
+besmettelijke/infectueuze conditie,3,2400.0,3600.0,3886.5,longTermCareP
+bewustzijn,3,2400.0,10445.0,4802.0,longTermCareP
+buurt/werkplek veiligheid,1,,1885.0,,longTermCareP
+circulatie,3,3040.0,3165.0,3867.0,longTermCareP
+cognitie,3,4510.0,3545.0,4035.0,longTermCareP
+communicatie met maatschappelijke voorzieningen,2,3352.5,3167.0,3315.0,longTermCareP
+darmfunctie,3,3460.0,3530.0,4070.0,longTermCareP
+fysieke activiteit,4,4080.0,3290.0,4080.0,longTermCareP
+gebruik van verslavende middelen,4,,,3543.5,longTermCareP
+geestelijke gezondheid,2,3365.0,5795.0,4800.0,longTermCareP
+gehoor,3,4000.0,4010.0,4080.0,longTermCareP
+geslachtsorganen,3,,2640.0,5507.5,longTermCareP
+gezondheidszorg supervisie,4,,3840.0,5010.0,longTermCareP
+huid,3,3345.0,3537.5,3955.0,longTermCareP
+inkomen / financiën,1,,5275.0,5844.0,longTermCareP
+interpersoonlijke relaties,2,,5760.0,3960.0,longTermCareP
+"mantelzorg / zorg voor kind, huisgenoot",2,4375.0,4652.5,4085.0,longTermCareP
+medicatie,4,4380.0,3572.5,4080.0,longTermCareP
+mishandeling / misbruik,2,,,3085.0,longTermCareP
+mondgezondheid,3,5012.5,4485.0,4800.0,longTermCareP
+neuro/musculaire/skelet functie,3,3162.5,3466.0,3600.0,longTermCareP
+omgevings hygiëne,1,,4715.0,5932.5,longTermCareP
+persoonlijke zorg,4,3530.0,3507.5,4000.0,longTermCareP
+pijn,3,3410.0,3775.0,4060.0,longTermCareP
+rolverandering,2,,9975.0,6025.0,longTermCareP
+rouw,2,3360.0,5760.0,5493.5,longTermCareP
+sexualiteit,2,,3120.0,,longTermCareP
+slaap en rust patronen,4,2980.0,4320.0,4800.0,longTermCareP
+sociaal contact,2,11727.5,5210.0,4435.0,longTermCareP
+spijsvertering-vochthuishouding,3,11747.5,5490.0,4800.0,longTermCareP
+spiritualiteit,2,,7200.0,5940.0,longTermCareP
+spraak en taal,3,2400.0,4070.0,4115.0,longTermCareP
+urineweg functie,3,3220.0,3785.0,4440.0,longTermCareP
+verwaarlozing,2,,,3960.0,longTermCareP
+voeding,4,3460.0,3345.0,3825.0,longTermCareP
+woning,1,,3962.5,4080.0,longTermCareP
+zicht,3,,3840.0,4080.0,longTermCareP
+ademhaling,3,90.0,85.0,105.0,NormalP
+besmettelijke/infectueuze conditie,3,95.0,90.0,90.0,NormalP
+bewustzijn,3,90.0,100.0,140.0,NormalP
+buurt/werkplek veiligheid,1,80.0,90.0,85.0,NormalP
+circulatie,3,80.0,80.0,80.0,NormalP
+cognitie,3,90.0,85.0,90.0,NormalP
+communicatie met maatschappelijke voorzieningen,2,85.0,90.0,95.0,NormalP
+darmfunctie,3,90.0,90.0,115.0,NormalP
+fysieke activiteit,4,90.0,90.0,95.0,NormalP
+gebruik van verslavende middelen,4,90.0,90.0,90.0,NormalP
+geestelijke gezondheid,2,90.0,87.5,100.0,NormalP
+gehoor,3,85.0,85.0,90.0,NormalP
+geslachtsorganen,3,80.0,90.0,95.0,NormalP
+gezinsplanning,4,,,80.0,NormalP
+gezondheidszorg supervisie,4,90.0,80.0,90.0,NormalP
+groei en ontwikkeling,2,120.0,60.0,65.0,NormalP
+huid,3,90.0,85.0,90.0,NormalP
+inkomen / financiën,1,97.5,90.0,90.0,NormalP
+interpersoonlijke relaties,2,90.0,85.0,90.0,NormalP
+"mantelzorg / zorg voor kind, huisgenoot",2,90.0,85.0,100.0,NormalP
+medicatie,4,85.0,80.0,90.0,NormalP
+mishandeling / misbruik,2,90.0,105.0,140.0,NormalP
+mondgezondheid,3,100.0,95.0,135.0,NormalP
+neuro/musculaire/skelet functie,3,90.0,90.0,100.0,NormalP
+omgevings hygiëne,1,90.0,90.0,100.0,NormalP
+persoonlijke zorg,4,85.0,85.0,90.0,NormalP
+pijn,3,90.0,90.0,100.0,NormalP
+postnataal,3,,,110.0,NormalP
+rolverandering,2,90.0,90.0,95.0,NormalP
+rouw,2,80.0,85.0,105.0,NormalP
+sexualiteit,2,80.0,120.0,125.0,NormalP
+slaap en rust patronen,4,90.0,90.0,120.0,NormalP
+sociaal contact,2,90.0,85.0,90.0,NormalP
+spijsvertering-vochthuishouding,3,95.0,90.0,115.0,NormalP
+spiritualiteit,2,70.0,90.0,165.0,NormalP
+spraak en taal,3,100.0,90.0,100.0,NormalP
+urineweg functie,3,90.0,90.0,105.0,NormalP
+verwaarlozing,2,80.0,80.0,100.0,NormalP
+voeding,4,90.0,90.0,105.0,NormalP
+woning,1,90.0,90.0,90.0,NormalP
+zicht,3,80.0,80.0,80.0,NormalP
+zwangerschap,3,85.0,,72.5,NormalP

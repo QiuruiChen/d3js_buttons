@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<!-- Load d3.js and the geo projection plugin -->
+<script src="https://d3js.org/d3.v4.js"></script>
+<script src="https://d3js.org/d3-geo-projection.v2.min.js"></script>
+
+<!-- Create an element where the map will take place -->
+<div id="my_dataviz"></div>
+<p>You can also click legend color box to change show only outliers/Non-outliers</p>
+<p>You could also zoom in/out the map</p>
+
+<!-- <button onclick="changeYear(2018)">2018</button> -->
+<button onclick="changeYear(2019)">2019</button>
+<button onclick="changeYear(2020)">2020</button>
+
+<style>
+.circle:hover{
+  stroke: black;
+  stroke-width: 4px;
+}
+</style>
+
+<script>
+
+// Size ?
+var width = 460 + 100
+var height = 560
+
+// The svg
+var svg = d3.select("#my_dataviz")
+  .append("svg")
+  .attr("width", width)
+  .attr("height", height)
+
+// Map and projection
+var projection = d3.geoMercator()
+    .center([5, 52])                // GPS of location to zoom on
+    .scale(6020)                       // This is like the zoom
+    .translate([ (width-100)/2, height/2 ])
+
+var markers = null;
+var g = svg.append("g")
+var colorDomin = ["1", "0"]
+var colorArray = ["#402D54", "#D18975"]
+var maxMinuten = null;
+// Add legend: circles
+var xCircle = 230
+var xLabel = 380
+var yCircle = 330
+var Legend = svg.append('g')
+var circleSize = [[0.1,10],[0.1, 50],[1,50]]
+
+var defaultOutlierIndicate = 2; // default show all (outliers + non-outliers)
+var defaultYear = 2020; // deualt value
+
+// create a tooltip
+var Tooltip = d3.select("#my_dataviz")
+.append("div")
+.attr("class", "tooltip")
+.style("opacity", 0)
+.style("background-color", "white")
+.style("border", "solid")
+.style("border-width", ".1em")
+.style("border-radius", ".5em")
+.style("padding", ".5em")
+.style("position","absolute")
+.style("font-size",".8em")
+
+// Three function that change the tooltip when user hover / move / leave a cell
+var mouseover = function(d){Tooltip.style("opacity", 1)}
+var mousemove = function(d) {
+  Tooltip
+  .html(d.Client_ID + "<br> Median Minuten:" +d.Minuten)
+          .style("left", (d3.mouse(this)[0]+10) + "px")
+          .style("top", (d3.mouse(this)[1]) + "px")
+}
+var mouseleave = function(d){Tooltip.style("opacity", 0)}
+
+function updateMap(outlierIndicate, year){
+
+  defaultOutlierIndicate = outlierIndicate
+  // Load external data and boot
+  // d3.json("data/NL_prov.geojson", function(data){
+  d3.json("https://www.webuildinternet.com/articles/2015-07-19-geojson-data-of-the-netherlands/provinces.geojson", function(data){
+    // Filter data
+    // data.features = data.features.filter( function(d){return d.properties.name=="France"} )
+    data.features = data.features.filter( function(d){return d} )
+    // Draw the map
+    g.selectAll("path")
+        .data(data.features)
+        .enter()
+        .append("path")
+        .attr("fill", "#b8b8b8")
+        .attr("d", d3.geoPath()
+            .projection(projection)
+        )
+        .style("stroke", "black")
+        .style("opacity", .3)
+  })
+
+
+  csv_file = "data/client_year_mins_"+year+".csv"
+  // Create data for circles:
+  d3.csv(csv_file, function(data) {
+      if ( (outlierIndicate == 0) | (outlierIndicate == 1)){
+        markers =  data.filter(function(d){
+              if(d["outlier"] == outlierIndicate) return d;
+            });
+        // Create a color scale
+        var color = d3.scaleOrdinal()
+         .domain([colorDomin[outlierIndicate]])
+         .range([colorArray[outlierIndicate]]);
+
+       }else{
+         markers = data
+         // Create a color scale
+         var color = d3.scaleOrdinal()
+          .domain(colorDomin)
+          .range(colorArray)
+       }
+
+       maxMinuten = d3.max(markers, function(d) {return +d['Minuten'];});
+       minMinuten = d3.min(markers, function(d) {return +d['Minuten'];});
+
+       var valuesToShow = [minMinuten, parseInt((minMinuten+maxMinuten)/2), maxMinuten]
+
+       Legend.selectAll("legend").remove();
+       Legend.selectAll("circle").remove();
+       Legend.selectAll("line").remove();
+       Legend.selectAll("text").remove();
+       Legend = Legend.selectAll("legend")
+         .data(valuesToShow)
+         .enter()
+
+       // Add a scale for bubble size
+       var size = d3.scaleLinear()
+        .domain([1,maxMinuten])  // What's in the data
+        .range(circleSize[outlierIndicate])  // Size in pixel
+
+       //clearing
+        g.selectAll("circle").remove();
+        g.selectAll("line").remove();
+        g.selectAll("text").remove();
+        // Add circles:
+        g.selectAll("myCircles")
+          .data(markers)
+          .enter()
+          .append("circle")
+            .attr("cx", function(d){ return projection([d.lng, d.lat])[0] })
+            .attr("cy", function(d){ return projection([d.lng, d.lat])[1] })
+            .attr("r", function(d){ return size(d.Minuten)})
+            .style("fill", function(d){ return color(d.outlier) })
+            .attr("stroke", function(d){ return color(d.outlier) })
+            .attr("stroke-width", 3)
+            .attr("fill-opacity", .4)
+           .on("mouseover", mouseover)
+           .on("mousemove", mousemove)
+           .on("mouseleave", mouseleave)
+
+         //change lengede
+         Legend.append("circle")
+             .attr("transform", "translate("+(50-width/2)+",220)")
+             .attr("cx", xCircle)
+             .attr("cy", function(d){ return yCircle - size(d) } )
+             .attr("r", function(d){ return size(d) })
+             .style("fill", "none")
+             .attr("stroke", "black")
+
+         // Add legend: segments
+         Legend.append("line")
+           .attr("transform", "translate("+(50-width/2)+",220)")
+             .attr('x1', function(d){ return xCircle + size(d) } )
+             .attr('x2', xLabel)
+             .attr('y1', function(d){ return yCircle - size(d) } )
+             .attr('y2', function(d){ return yCircle - size(d) } )
+             .attr('stroke', 'black')
+             .style('stroke-dasharray', ('2,2'))
+
+         // Add legend: labels
+         Legend.append("text")
+           .attr("transform", "translate("+(50-width/2)+",220)")
+           .attr('x', xLabel)
+           .attr('y', function(d){ return yCircle - size(d) } )
+           .text( function(d){ return d } )
+           .style("font-size", ".5em")
+           .attr('alignment-baseline', 'middle')
+
+    })
+}
+
+
+function changeYear(year){
+  defaultYear = +year
+  updateMap(defaultOutlierIndicate, defaultYear)
+}
+// zooming
+var zoom = d3.zoom().scaleExtent([1, 8]).on('zoom', zoomed);
+svg.call(zoom);
+function zoomed() {
+      g.selectAll('path') // To prevent stroke width from scaling
+        .attr('transform', d3.event.transform);
+      g.selectAll('circle') // To prevent stroke width from scaling
+        .attr('transform', d3.event.transform);
+}
+
+// add legend for outlier and non-outlier
+// show All legend
+var showAll = svg.append("g").attr("class","circleLegend")
+.attr("class","circleLegend")
+.attr("transform",  "translate(" + (width-100) + ", "+((height/2)-30)+")");
+showAll.append("text")
+.text("Show all").attr("transform", "translate(15,9)")
+.attr("font-size", ".9em");
+showAll.append("rect")
+  .attr("fill","red")
+  .attr("width", 12).attr("height", 12)
+  .on("click", function(){
+      // show all maps
+      zoom.scaleTo(svg, 1);
+      updateMap(2,defaultYear)
+  });
+
+var outlier = svg.append("g").attr("class","circleLegend").attr("class","circleLegend").attr("transform",  "translate(" + (width-100) + ", "+(height/2)+")");
+outlier.append("text").text("Outliers").attr("transform", "translate(15,9)").attr("font-size", ".9em");
+outlier.append("rect").attr("fill","#402D54").attr("width", 12).attr("height", 12)
+.on("click", function(){
+    // show all maps
+    zoom.scaleTo(svg, 1);
+    updateMap(1,defaultYear)
+});
+
+var nonoutlier = svg.append("g").attr("class","circleLegend").attr("class","circleLegend")
+.attr("transform",  "translate(" + (width-100) + ", "+((height/2)+30)+")");
+nonoutlier.append("text").text("Non-Outliers").attr("transform", "translate(15,9)").attr("font-size", ".9em");
+nonoutlier.append("rect").attr("fill","#D18975").attr("width", 12).attr("height", 12)
+.on("click", function(){
+    // show all maps
+    zoom.scaleTo(svg, 1);
+    updateMap(0,defaultYear)
+
+});
+
+// init
+updateMap(2,defaultYear)
+</script>
